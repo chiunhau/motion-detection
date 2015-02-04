@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+	<script src="js/jquery-1.11.2.min.js"></script>
+	<script type="text/javascript" src="js/paper-full.js"></script>
+	<script type="text/paperscript" canvas="myCanvas2">
+		
+	// Getting Webcam frame	
+		var audioCtx;
+		var video = document.querySelector('video');
+		var canvas = document.getElementById('myCanvas1');
+		var width = $(window).width();
+		var height = $(window).height();
+		canvas.width = width;
+		canvas.height = height;
+		var detection = {};
+
+		function getWebcam(){
+			audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+			navigator.getMedia =  navigator.getUserMedia ||
+            navigator.webkitGetUserMedia ||
+            navigator.mozGetUserMedia ||
+            navigator.msGetUserMedia;
+
+            if (navigator.getMedia) {
+	   			navigator.getMedia (
+	   			{	
+	   				video: true
+	   			}, 
+	   			function(localMediaStream){
+	   				console.log('success callback');
+    				video.src = window.URL.createObjectURL(localMediaStream);
+
+    				video.onloadedmetadata = function(e) {
+				      setTimeout(function(){
+				      	view.on('frame', frameHandler);
+				      },2000);
+				     
+				    };
+				}, 
+			   	function(e){
+			   		console.log(e);
+			   	}
+				);
+			}
+		}
+
+
+		function update(){
+			var c = canvas.getContext('2d');
+			c.save();
+			c.scale(-1,1);
+		    c.drawImage(video,-width,0,width,height);
+		    c.restore();
+		    var currentFrame = c.getImageData(0,0,canvas.width,canvas.height);
+		    	
+		    if(!detection.framesArray){
+		    	detection.framesArray = [];
+		    	var currentFrame = c.getImageData(0,0,width,height);
+		    	detection.framesArray.push(currentFrame); 
+		    }
+		    else{
+		    	var currentFrame = c.getImageData(0,0,width,height);
+		    	
+		    	if (detection.framesArray[1] == null) {
+		    		
+		    		detection.framesArray.push(currentFrame);
+		    	}
+		    	else{
+		    		detection.framesArray.splice(0,1);
+		    		detection.framesArray.push(currentFrame);
+		    	}
+		    	detectMotion(detection.framesArray[0],detection.framesArray[1]);
+		    }
+		}
+
+		function frameHandler(event){
+			update();
+
+		}
+		getWebcam();
+
+		// Detect motion
+
+		function detectMotion(previous, current){
+			var parts = 60;
+
+			var xSide = Math.floor(previous.width/parts);
+			var ySide = Math.floor(previous.height/parts);
+
+			var response = [];
+			for(var r = 0; r < parts; r++){
+				for(var c = 0; c < parts; c++){
+					var x = (c * xSide) + Math.floor(xSide/2);
+					var y = (r * ySide) + Math.floor(ySide/2);
+					var postition = (previous.width * 4) * y + x * 4;
+
+					
+					var dr = abs(previous.data[postition]-current.data[postition]);
+					var dg = abs(previous.data[postition+1]-current.data[postition+1]);
+					var db = abs(previous.data[postition+2]-current.data[postition+2]);
+
+					// motion detected
+					if((dr+dg+db) >= 100){
+						console.log([c,r]);
+						var rectangle = new Rectangle(new Point(c * xSide, r * ySide), new Point(c * xSide + xSide, r * ySide + ySide));
+						
+						var path = new Path.Rectangle(rectangle);
+						path.fillColor = 'hsl(20 , 100%, 66%)';
+						path.opacity = 0.5;
+					}
+				}
+			}
+			for (var i = 0; i < project.activeLayer.children.length; i++) {
+				
+				if(project.activeLayer.children[i].opacity>0.05){
+					project.activeLayer.children[i].opacity-=0.05;
+				}
+				else{
+					project.activeLayer.children[i].remove();
+				}
+			};
+
+
+		}
+		function clearLast(){
+			project.activeLayer.firstChild.remove();
+		}
+		function abs(number){
+			return Math.abs(number);
+		}
+		function getRandom(min, max) {
+		    return Math.random() * (max - min) + min;
+		}
+		
+
+		
+
+
+	</script>
+	
+
+	<style>
+		body,html {
+			margin:0;
+			padding: 0;
+		}
+		video {
+			
+			display: none;
+		}
+		canvas {
+			position: absolute;
+			top: 0;
+			left: 0;
+			
+		}
+		#myCanvas2{
+			height:100%;
+			width:100%;
+		}
+		
+	</style>
+</head>
+
+<body>
+	<video autoplay></video>
+	<canvas id="myCanvas1"></canvas>
+	<canvas id="myCanvas2"></canvas>		
+</html>
