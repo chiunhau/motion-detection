@@ -18,6 +18,10 @@
 		canvas.width = width;
 		canvas.height = height;
 		var detection = {};
+		var xParts = 45;
+		var yParts = 30;
+		var blocksNum = xParts * yParts;
+		var blocksInit = true;
 
 		function getWebcam(){
 			audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -88,59 +92,58 @@
 		// Detect motion
 
 		function detectMotion(previous, current){
-			var parts = 60;
+			
 
-			var xSide = Math.floor(previous.width/parts);
-			var ySide = Math.floor(previous.height/parts);
+			var xSide = Math.floor(previous.width/xParts);
+			var ySide = Math.floor(previous.height/yParts);
 
-			var response = [];
-			for(var r = 0; r < parts; r++){
-				for(var c = 0; c < parts; c++){
+			for(var r = 0; r < yParts; r++){
+				for(var c = 0; c < xParts; c++){
 					var x = (c * xSide) + Math.floor(xSide/2);
 					var y = (r * ySide) + Math.floor(ySide/2);
 					var postition = (previous.width * 4) * y + x * 4;
 
-					
-					var dr = abs(previous.data[postition]-current.data[postition]);
-					var dg = abs(previous.data[postition+1]-current.data[postition+1]);
-					var db = abs(previous.data[postition+2]-current.data[postition+2]);
-
-					// motion detected
-					if((dr+dg+db) >= 100){
-						console.log([c,r]);
+					if(blocksInit) {
+						
 						var rectangle = new Rectangle(new Point(c * xSide, r * ySide), new Point(c * xSide + xSide, r * ySide + ySide));
 						
 						var path = new Path.Rectangle(rectangle);
-						path.fillColor = 'hsl(20 , 100%, 66%)';
-						path.opacity = 0.5;
+						path.fillColor = 'hsla(159, 100%, 31%)';
+						path.opacity = 0;
 					}
+					else {
+						var dr = abs(previous.data[postition]-current.data[postition]);
+						var dg = abs(previous.data[postition+1]-current.data[postition+1]);
+						var db = abs(previous.data[postition+2]-current.data[postition+2]);
+
+						// motion detected
+						if((dr+dg+db) >= 100){
+							project.activeLayer.children[r * xParts + c].opacity += 0.5
+						}
+					}					
 				}
 			}
-			for (var i = 0; i < project.activeLayer.children.length; i++) {
-				
-				if(project.activeLayer.children[i].opacity>0.05){
-					project.activeLayer.children[i].opacity-=0.05;
-				}
-				else{
-					project.activeLayer.children[i].remove();
-				}
-			};
+			blocksInit = false;
 
-
+			if (!blocksInit) {
+				for(var i = 0; i < blocksNum; i ++) {
+					if (project.activeLayer.children[i].opacity -= 0.05 < 0) {
+						project.activeLayer.children[i].opacity = 0;
+					}
+					else {
+						project.activeLayer.children[i].opacity -= 0.05;
+					}					
+				}
+			}
+			
 		}
-		function clearLast(){
-			project.activeLayer.firstChild.remove();
-		}
+		
 		function abs(number){
 			return Math.abs(number);
 		}
 		function getRandom(min, max) {
 		    return Math.random() * (max - min) + min;
 		}
-		
-
-		
-
 
 	</script>
 	
