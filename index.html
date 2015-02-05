@@ -118,23 +118,25 @@
 
 						// motion detected
 						if((dr+dg+db) >= 100){
-							project.activeLayer.children[r * xParts + c].opacity += 0.5
+							project.activeLayer.children[r * xParts + c].opacity = 0.8;
 						}
 					}					
 				}
 			}
 			blocksInit = false;
 
-			if (!blocksInit) {
-				for(var i = 0; i < blocksNum; i ++) {
-					if (project.activeLayer.children[i].opacity -= 0.05 < 0) {
-						project.activeLayer.children[i].opacity = 0;
+			
+			for(var i = 0; i < blocksNum; i ++) {
+				
+					if(project.activeLayer.children[i].opacity >= 0.05) {
+						project.activeLayer.children[i].opacity -= 0.05;
 					}
 					else {
-						project.activeLayer.children[i].opacity -= 0.05;
-					}					
-				}
+						project.activeLayer.children[i].opacity = 0;
+					}
+								
 			}
+			
 			
 		}
 		
