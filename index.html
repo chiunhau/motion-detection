@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
     
 	<script src="js/jquery-1.11.2.min.js"></script>
-	<script type="text/javascript" src="js/paper-full.js"></script>
+	<script type="text/javascript" src="js/paper-full.min.js"></script>
 	<script type="text/paperscript" canvas="myCanvas2">
 
 		var audioCtx;
@@ -36,7 +36,7 @@
 	   				video.onloadedmetadata = function(e) {
 				      setTimeout(function(){
 				      	view.on('frame', frameHandler);
-				      },2000);
+				      },1000);
 				    };
 					}, 
 			   	function(e){
@@ -106,7 +106,7 @@
 						var db = abs(previous.data[postition+2]-current.data[postition+2]);
 
 						// motion detected
-						if((dr+dg+db) >= 100){
+						if((dr+dg+db) >= 80 && twoSideRandom(2,5)){
 							project.activeLayer.children[r * xParts + c].opacity = 0.7;
 							project.activeLayer.children[r * xParts + c].fillColor = 'hsl(0, 100%, 50%)';
 						}
@@ -133,6 +133,14 @@
 
 		function getRandom(min, max) {
 		    return Math.random() * (max - min) + min;
+		}
+		function twoSideRandom(numerator,denominator) {
+			if(getRandom(0, denominator) <= numerator) {
+				return true;
+			}
+			else {
+				return false;
+			}
 		}
 
 		canvas.width = width;
