@@ -15,7 +15,7 @@
 		var width = $(window).width();
 		var height = $(window).height();		
 		var detection = {};
-		var xParts = 90, yParts = 60;
+		var xParts = 75, yParts = 50;
 		var blocksNum = xParts * yParts;
 		var blocksInit = true;
 
@@ -106,8 +106,8 @@
 						var db = abs(previous.data[postition+2]-current.data[postition+2]);
 
 						// motion detected
-						if((dr+dg+db) >= 80 && twoSideRandom(2,5)){
-							project.activeLayer.children[r * xParts + c].opacity = 0.7;
+						if((dr+dg+db) >= 80 ){
+							project.activeLayer.children[r * xParts + c].opacity = 1;
 							project.activeLayer.children[r * xParts + c].fillColor = 'hsl(0, 100%, 50%)';
 						}
 					}					
