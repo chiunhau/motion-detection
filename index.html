@@ -15,9 +15,9 @@
 		var width = $(window).width();
 		var height = $(window).height();		
 		var detection = {};
-		var xParts = 75, yParts = 50;
+		var xParts = 60, yParts = 40;
 		var blocksNum = xParts * yParts;
-		var blocksInit = true;
+		var cloudShowed = false;
 
 		function getWebcam(){
 			audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -83,39 +83,48 @@
 
 		function detectMotion(previous, current){
 			
+			if (!cloudShowed) {
+				
+			}
 			var xSide = Math.floor(previous.width/xParts);
 			var ySide = Math.floor(previous.height/yParts);
-
+			var changed = [];
 			for(var r = 0; r < yParts; r++){
 				for(var c = 0; c < xParts; c++){
 					var x = (c * xSide) + Math.floor(xSide/2);
 					var y = (r * ySide) + Math.floor(ySide/2);
 					var postition = (previous.width * 4) * y + x * 4;
 
-					if(blocksInit) {
-						
-						var rectangle = new Rectangle(new Point(c * xSide, r * ySide), new Point(c * xSide + xSide, r * ySide + ySide));
-						
-						var path = new Path.Rectangle(rectangle);
-						path.fillColor = 'hsl(0, 100%, 50%)';
-						path.opacity = 0;
-					}
-					else {
-						var dr = abs(previous.data[postition]-current.data[postition]);
-						var dg = abs(previous.data[postition+1]-current.data[postition+1]);
-						var db = abs(previous.data[postition+2]-current.data[postition+2]);
+					var dr = abs(previous.data[postition]-current.data[postition]);
+					var dg = abs(previous.data[postition+1]-current.data[postition+1]);
+					var db = abs(previous.data[postition+2]-current.data[postition+2]);
 
 						// motion detected
-						if((dr+dg+db) >= 80 ){
-							project.activeLayer.children[r * xParts + c].opacity = 1;
-							project.activeLayer.children[r * xParts + c].fillColor = 'hsl(0, 100%, 50%)';
-						}
-					}					
+					if((dr+dg+db) >= 80 ){
+						changed.push([c,r]);
+					}
+										
 				}
 			}
 
-			blocksInit = false;
+			if (changed.length != 0) {
+				var cSum = 0, rSum = 0, changedNum = changed.length;
+
+				for (var i = 0; i < changedNum; i++) {
+					cSum += changed[i][0];
+					rSum += changed[i][1];
+				}
+				var cAve = Math.floor(cSum/changedNum);
+				var rAve = Math.floor(rSum/changedNum);
+				var destination = new Point(cAve * xSide + Math.floor(xSide/2),50);
+				var vector = destination - cloud.position;
+				
+				cloud.position += vector/20;
+			}
 			
+
+			
+			/*
 			for(var i = 0; i < blocksNum; i ++) {
 				if(project.activeLayer.children[i].fillColor.hue <= 250) {
 					project.activeLayer.children[i].fillColor.hue += 20;
@@ -125,6 +134,7 @@
 					project.activeLayer.children[i].fillColor.hue = 0;
 				}				
 			}	
+			*/
 		}
 
 		function abs(number){
@@ -145,6 +155,9 @@
 
 		canvas.width = width;
 		canvas.height = height;
+
+		var cloud = new Raster('cloud');
+		cloud.position = new Point(500, 50);
 
 		getWebcam();
 
@@ -190,6 +203,9 @@
 			bottom:20px;
 			left:0;
 		}
+		img {
+			display: none;
+		}
 	</style>
 </head>
 
@@ -197,6 +213,7 @@
 	<video id="video" autoplay></video>
 	<canvas id="myCanvas1"></canvas>
 	<canvas id="myCanvas2"></canvas>
+	<img src="cloud.gif" id="cloud">
 	<!--
 	<div id="circle1" class="circle" style="left:25%"></div>
 	<div id="circle2" class="circle" style="left:35%"></div>
